@@ -6,9 +6,15 @@ most of the examples from here: https://gobyexample.com/
 package main
 
 import (
-    "errors"
     "fmt"
+    "errors"
     "sort"
+    "regexp"
+    "strconv"
+    // "bufio"
+    // "io"
+    "io/ioutil"
+    // "os"
 )
 
 func my_println() {
@@ -180,16 +186,27 @@ func my_sort() {
     fmt.Println("sorted", a)
 }
 
-/* Notes
-- switch without expression
-- range is enumerate?
-- implicit interfaces?
-- go routines
-- channels are pipes connecting go routines
-- c-style casting
-- type assertion inside if `if str, ok := val.(string); ok {...}`
-    - no subclassing, only interfaces and struct embedding
-*/
+func my_regexp() {
+    r, _ := regexp.Compile("ab+c")
+    fmt.Println("regexp", r.FindString("asdfabbcasd"))
+}
+
+func my_strconv() {
+    f, _ := strconv.ParseFloat("1.234", 64)
+    fmt.Println("strconv", f)
+}
+
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
+func my_readfile() {
+    dat, err := ioutil.ReadFile("./test_file")
+    check(err)
+    fmt.Print(string(dat))
+}
 
 func main() {
     my_println()
@@ -208,5 +225,36 @@ func main() {
     my_struct()
     my_errors()
     my_sort()
+    my_regexp()
+    my_strconv()
+    my_readfile()
 }
+
+/* Notes
+- switch without expression
+- range is enumerate?
+- implicit interfaces?
+- go routines
+- channels are pipes connecting go routines
+- c-style casting
+- type assertion inside if `if str, ok := val.(string); ok {...}`
+- no subclassing, only interfaces and struct embedding
+- defer for actions to be completed last (try/ finally)
+- no generics, customary to define own collection functions
+- line filter: https://gobyexample.com/line-filters
+
+String functions:
+    Contains("test", "es"))
+    Count("test", "t"))
+    HasPrefix("test", "te"))
+    HasSuffix("test", "st"))
+    Index("test", "e"))
+    Join([]string{"a", "b"}, "-"))
+    Repeat("a", 5))
+    Replace("foo", "o", "0", -1))
+    Replace("foo", "o", "0", 1))
+    Split("a-b-c-d-e", "-"))
+    ToLower("TEST"))
+    ToUpper("test"))
+*/
 
