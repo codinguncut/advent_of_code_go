@@ -46,13 +46,6 @@ func calc_frequency(nums []int) int {
     return total
 }
 
-// error handling for lazy people
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
-
 // read newline separated integers from file
 func read_file_ints(fname string) []int {
     dat, err := ioutil.ReadFile(fname)
