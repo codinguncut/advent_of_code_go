@@ -2,26 +2,26 @@ package main
 
 import (
     "fmt"
-    "io/ioutil"
-    "strings"
 )
 
 type count_map = map[int]bool
 
+// test whether there are letters in box_id that occur N times
 func checksum_single(box_id string) (res count_map) {
-    counts := make(map[rune]int)
+    counts := map[rune]int{}
     for _, char := range box_id {
         counts[char] += 1
     }
 
-    res = make(count_map)
+    res = count_map{}
     for _, v := range counts {
         res[v] = true
     }
     return
 }
 
-// calculate total checksum from individual checksums
+// multiply number of box_id's with 2 letters occuring
+//  with number of 3 letters occurring
 func checksum_boxes(cmaps []count_map) int {
     twos := 0
     threes := 0
@@ -36,28 +36,12 @@ func checksum_boxes(cmaps []count_map) int {
     return twos * threes
 }
 
-func read_file_strings(fname string) []string {
-    dat, err := ioutil.ReadFile(fname)
-    check(err)
-
-    strs := strings.Split(string(dat), "\n")
-    vals := []string{}  // make()?
-    for _, str := range strs {
-        str = strings.TrimSpace(str)
-        if str == "" {
-            continue
-        }
-        vals = append(vals, str)
-    }
-    return vals
-}
-
 func day2_main() {
-    box_ids := read_file_strings("data/day2_input.txt")
+    box_ids := read_lines("data/day2_input.txt")
     cmaps := []count_map{}
     for _, box_id := range box_ids {
         cmaps = append(cmaps, checksum_single(box_id))
     }
     checksum := checksum_boxes(cmaps)
-    fmt.Println("checksum", checksum)
+    fmt.Println("day2.1: checksum", checksum)
 }
