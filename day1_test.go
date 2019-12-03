@@ -14,7 +14,7 @@ func TestFuelRequired(t *testing.T) {
 	}
 
     for _, table := range tables {
-        if got := fuel_required(table.mass); got != table.want {
+        if got := CalcFuelRequired(table.mass, false); got != table.want {
             t.Errorf("result was incorrect, got: %d, want: %d", got, table.want)
         }
     }
@@ -31,17 +31,16 @@ func TestFuelRequired2(t *testing.T) {
 	}
 
     for _, table := range tables {
-        if got := fuel_required_2(table.mass); got != table.want {
+        if got := CalcFuelRequired(table.mass, true); got != table.want {
             t.Errorf("result was incorrect, got: %d, want: %d", got, table.want)
         }
     }
 }
 
 func TestCalcTotalFuel(t *testing.T) {
-    // FIXME: reuse table values
     masses := []int{12, 14, 1969, 100756}
     want := 2 + 2 + 654 + 33583
-    if got := calc_total_fuel(masses); got != want {
+    if got := CalcTotalFuel(masses, false); got != want {
         t.Errorf("result was incorrect, got: %d, want: %d", got, want)
     }
 }
