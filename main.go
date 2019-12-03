@@ -1,7 +1,7 @@
 package main
 
 func main() {
-    Day1Main()
-    // day2_main()
-    // Day3Main()
+    // Day1Main()
+    // Day2Main()
+    Day3Main()
 }

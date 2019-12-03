@@ -8,7 +8,7 @@ import (
 func TestExec(t *testing.T) {
     tables := []struct {
 		program []int
-		end_state []int
+		endState []int
 	}{
         {[]int{1,0,0,0,99}, []int{2,0,0,0,99}}, // 1+1=2
         {[]int{2,3,0,3,99}, []int{2,3,0,6,99}}, // 3*2=6
@@ -17,8 +17,8 @@ func TestExec(t *testing.T) {
 	}
 
     for _, table := range tables {
-        if got := exec(table.program).pos; !reflect.DeepEqual(got, table.end_state) {
-            t.Errorf("result was incorrect, got: %d, want: %d", got, table.end_state)
+        if got := Exec(table.program).pos; !reflect.DeepEqual(got, table.endState) {
+            t.Errorf("result was incorrect, got: %d, want: %d", got, table.endState)
         }
     }
 }
