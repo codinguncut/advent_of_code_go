@@ -1,4 +1,4 @@
-package main
+package aoc
 
 import (
     "io/ioutil"
@@ -6,16 +6,17 @@ import (
     "strconv"
 )
 
-func read_file(fname string) string {
+// ReadFile reads a file as string
+func ReadFile(fname string) string {
     dat, err := ioutil.ReadFile(fname)
-    check(err)
+    Check(err)
     return string(dat)
 }
 
-// read non-empty lines from file
-func read_lines(fname string) []string {
+// ReadLines reads non-empty lines as strings from file
+func ReadLines(fname string) []string {
     dat, err := ioutil.ReadFile(fname)
-    check(err)
+    Check(err)
 
     strs := strings.Split(string(dat), "\n")
     vals := []string{}
@@ -29,34 +30,34 @@ func read_lines(fname string) []string {
     return vals
 }
 
-// read comma-separated integers from file
-func read_comma_ints(fname string) []int {
-    str := strings.TrimSpace(read_file(fname))
+// ReadCommaInts reads comma-separated integers from file
+func ReadCommaInts(fname string) []int {
+    str := strings.TrimSpace(ReadFile(fname))
 
     vals := []int{}
     for _, str := range strings.Split(str, ",") {
         val, err := strconv.ParseInt(str, 10, 32)
-        check(err)
+        Check(err)
         vals = append(vals, int(val))
     }
     return vals
 }
 
-// read integers from file, one per line
-func read_file_ints(fname string) []int {
-    str := strings.TrimSpace(read_file(fname))
+// ReadFileInts reads integers from file, one per line
+func ReadFileInts(fname string) []int {
+    str := strings.TrimSpace(ReadFile(fname))
 
     vals := []int{}
     for _, str := range strings.Split(str, "\n") {
         val, err := strconv.ParseInt(str, 10, 32)
-        check(err)
+        Check(err)
         vals = append(vals, int(val))
     }
     return vals
 }
 
-// error handling for lazy people
-func check(e error) {
+// Check converts Errors into panic()
+func Check(e error) {
     if e != nil {
         panic(e)
     }

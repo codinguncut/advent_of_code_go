@@ -1,8 +1,9 @@
-package main
+package day1
 
 import (
     "fmt"
     "math"
+    "aoc"
 )
 
 // CalcFuelRequired calculates fuel requirement per module mass
@@ -25,9 +26,9 @@ func CalcTotalFuel(masses []int, doRecurse bool) (total int) {
     return
 }
 
-// Day1Main is the main function to be called for day 1 exercise
-func Day1Main() {
-    masses := read_file_ints("data/day1_input.txt")
+// Main is the main function to be called for day 1 exercise
+func Main() {
+    masses := aoc.ReadFileInts("data/day1_input.txt")
     fmt.Println("day1.1", CalcTotalFuel(masses, false))
     fmt.Println("day1.2", CalcTotalFuel(masses, true))
 }

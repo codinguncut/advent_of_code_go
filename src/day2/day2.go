@@ -1,7 +1,8 @@
-package main
+package day2
 
 import (
     "fmt"
+    "aoc"
 )
 
 // Opcode represents operations that the processor supports
@@ -77,7 +78,7 @@ func RunPart1(i int, j int, program []int) int {
 // RunPart2 loads the input from the file and brute-forces all possible
 //  values for cells 1 and 2 to find a resulting target value
 func RunPart2() int {
-    program := read_comma_ints("data/day2_input.txt")
+    program := aoc.ReadCommaInts("data/day2_input.txt")
 
     for i := range [99]int{} {
         for j := range [99]int{} {
@@ -97,9 +98,9 @@ func RunPart2() int {
     return 0
 }
 
-// Day2Main executes the code for the day 2 exercise
-func Day2Main() {
-    program := read_comma_ints("data/day2_input.txt")
+// Main executes the code for the day 2 exercise
+func Main() {
+    program := aoc.ReadCommaInts("data/day2_input.txt")
 
     fmt.Println("day2.1", RunPart1(12, 2, program))
     fmt.Println("day2.2", RunPart2())

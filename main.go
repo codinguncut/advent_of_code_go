@@ -1,7 +1,13 @@
 package main
 
+import (
+    // "day1"
+    "day2"
+    // "day3"
+)
+
 func main() {
-    // Day1Main()
-    // Day2Main()
-    Day3Main()
+    // day1.Main()
+    day2.Main()
+    // day3.Main()
 }

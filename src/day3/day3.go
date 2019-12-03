@@ -1,9 +1,10 @@
-package main
+package day3
 
 import (
     "fmt"
     "strings"
     "strconv"
+    "aoc"
 )
 
 // Abs calculates an absolute value
@@ -62,7 +63,7 @@ type Visited map[Coord]int
 // ParseSegment converts i.e. "U20" to `PathSegment{dir: up, length: 20}`
 func ParseSegment(path string) PathSegment {
     length, err := strconv.ParseInt(path[1:], 10, 32)
-    check(err)
+    aoc.Check(err)
     return PathSegment{DirLookup[path[0:1]], int(length)} 
 }
 
@@ -77,7 +78,7 @@ func ParsePath(line string) Path {
 
 // ReadPaths reads an input file and returns two paths
 func ReadPaths() (p1, p2 Path) {
-    lines := read_lines("data/day3_input.txt")
+    lines := aoc.ReadLines("data/day3_input.txt")
     p1 = ParsePath(lines[0])
     p2 = ParsePath(lines[1])
     return
@@ -143,16 +144,16 @@ func FindShortest(locs1, locs2 Visited) int {
     return min
 }
 
-// Day3Run executes part 1 of the day 3 exercise
-func Day3Run(p1, p2 Path) int {
+// Run executes part 1 of the day 3 exercise
+func Run(p1, p2 Path) int {
     l1, l2 := CalcVisited(p1), CalcVisited(p2)
     return FindClosest(IntersectVisited(l1, l2))
 }
 
-// Day3Main executes the code for the day 3 exercise
-func Day3Main() {
+// Main executes the code for the day 3 exercise
+func Main() {
     p1, p2 := ReadPaths()
-    fmt.Println("day3 closest", Day3Run(p1, p2))
+    fmt.Println("day3 closest", Run(p1, p2))
 
     l1, l2 := CalcVisited(p1), CalcVisited(p2)
     fmt.Println("day3 shortest", FindShortest(l1, l2))
