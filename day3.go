@@ -6,7 +6,6 @@ import (
     "strconv"
 )
 
-// calculate absolute value of "x"
 func Abs(x int) int {
     if x < 0 {
         return -x
@@ -19,11 +18,13 @@ type Coord struct {
 }
 
 func (this Coord) Add(other Coord) Coord {
-    return Coord{this.x + other.x, this.y + other.y}
+    return Coord{this.x + other.x,
+                 this.y + other.y}
 }
 
 func (this Coord) CalcManhattan() int {
-    return Abs(this.x) + Abs(this.y)
+    return (Abs(this.x) +
+            Abs(this.y))
 }
 
 ///
@@ -47,6 +48,7 @@ var Origin Coord = Coord{0, 0}
 
 type Visited map[Coord]int
 
+// convert "U20" to `PathSegment{dir: up, length: 20}`
 func ParseSegment(path string) PathSegment {
     length, err := strconv.ParseInt(path[1:], 10, 32)
     check(err)
@@ -68,23 +70,25 @@ func ReadPaths() (p1, p2 Path) {
     return
 }
 
-func PathToVisited(path Path) Visited {
-    locs := Visited{}
+// step through path to mark all visited coordinates
+func CalcVisited(path Path) Visited {
+    visited := Visited{}
     curr_loc := Origin
     step := 0
-    for _, p := range path {
-        for i := 0; i < p.length; i++ {
+    for _, segment := range path {
+        for i := 0; i < segment.length; i++ {
             step += 1
-            curr_loc = curr_loc.Add(p.dir)
-            // keep smallest step count
-            if locs[curr_loc] == 0 {
-                locs[curr_loc] = step
+            curr_loc = curr_loc.Add(segment.dir)
+            // only keep smallest step count in visited
+            if visited[curr_loc] == 0 {
+                visited[curr_loc] = step
             }
         }
     }
-    return locs
+    return visited
 }
 
+// find all path intersections
 func IntersectVisited(locs1, locs2 Visited) []Coord {
     coords := []Coord{}
     for k, _ := range locs1 {
@@ -95,6 +99,7 @@ func IntersectVisited(locs1, locs2 Visited) []Coord {
     return coords
 }
 
+// find closest intersection by manhattan distance
 func FindClosest(coords []Coord) int {
     min := coords[0].CalcManhattan()
     for _, coord := range coords[1:] {
@@ -105,6 +110,7 @@ func FindClosest(coords []Coord) int {
     return min
 }
 
+// find shortest short circuit by circuit length
 func FindShortest(locs1, locs2 Visited) int {
     dists := []int{}
     for k, _ := range locs1 {
@@ -124,8 +130,7 @@ func FindShortest(locs1, locs2 Visited) int {
 }
 
 func Day3Run(p1, p2 Path) int {
-    l1 := PathToVisited(p1)
-    l2 := PathToVisited(p2)
+    l1, l2 := CalcVisited(p1), CalcVisited(p2)
     return FindClosest(IntersectVisited(l1, l2))
 }
 
@@ -133,6 +138,6 @@ func Day3Main() {
     p1, p2 := ReadPaths()
     fmt.Println("day3 closest", Day3Run(p1, p2))
 
-    l1, l2 := PathToVisited(p1), PathToVisited(p2)
+    l1, l2 := CalcVisited(p1), CalcVisited(p2)
     fmt.Println("day3 shortest", FindShortest(l1, l2))
 }

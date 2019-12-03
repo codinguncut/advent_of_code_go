@@ -20,7 +20,7 @@ func TestDay3(t *testing.T) {
 
     for _, table := range tables {
         p1, p2 := ParsePath(table.path1), ParsePath(table.path2)
-        l1, l2 := PathToVisited(p1), PathToVisited(p2)
+        l1, l2 := CalcVisited(p1), CalcVisited(p2)
         got := FindClosest(IntersectVisited(l1, l2))
 
         if got != table.closest {
