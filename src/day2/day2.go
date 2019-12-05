@@ -31,8 +31,9 @@ func RunPart2() int {
 
             // reached target value
             if res == 19690720 {
-                fmt.Println("noun", i, "verb", j, "res", i*100+j)
-                return res
+                nounAndVerb := i*100+j
+                // fmt.Println("noun", i, "verb", j, "res", nounAndVerb)
+                return nounAndVerb
             }
         }
     }
