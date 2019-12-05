@@ -2,7 +2,7 @@ package main
 
 import (
     // "day1"
-    // "day2"
+    "day2"
     // "day3"
     // "day4"
     // "intcode"
@@ -11,7 +11,7 @@ import (
 
 func main() {
     // day1.Main()
-    // day2.Main()
+    day2.Main()
     // day3.Main()
     // day4.Main()
     day5.Main()

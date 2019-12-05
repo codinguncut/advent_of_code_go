@@ -7,20 +7,20 @@ import (
 // Opcode represents operations that the processor supports
 type Opcode int
 
-// FIXME
-// type MemoryIndex int
+// MemoryIndex is used to access values in memory
+type MemoryIndex int
 
 // opcodes supported by the processor
 const (
-    OpAdd Opcode = 1
-    OpMul Opcode = 2
-    OpInput Opcode = 3
-    OpOutput Opcode = 4
-    OpJumpTrue Opcode = 5
-    OpJumpFalse Opcode = 6
-    OpLessThan Opcode = 7
-    OpEquals Opcode = 8
-    OpDone Opcode = 99
+    OpAdd = 1
+    OpMul = 2
+    OpInput = 3
+    OpOutput = 4
+    OpJumpTrue = 5
+    OpJumpFalse = 6
+    OpLessThan = 7
+    OpEquals = 8
+    OpDone = 99
 )
 
 // ParamMode specifies how parameter values should be interpreted
@@ -28,15 +28,15 @@ type ParamMode int
 
 // parameter modes
 const (
-    ParamPos ParamMode = 0
-    ParamImm ParamMode = 1
+    ParamPos = 0
+    ParamImm = 1
 )
 
 // State data type contains the program memory and the instruction pointer.
 //  In addition it manages inputs and outputs of the program
 type State struct {
     Mem []int // memory
-    IP int // instruction pointer
+    IP MemoryIndex // instruction pointer
     Inputs []int
     Outputs []int
     ReadInt (func(*State) int)
@@ -72,7 +72,7 @@ func (state State) opcode() Opcode {
 
 
 // EvalParam evaluates value at memIndex based on ParamMode
-func (state State) EvalParam(memIndex int, mode ParamMode) int {
+func (state State) EvalParam(memIndex MemoryIndex, mode ParamMode) int {
     value := state.Mem[memIndex]
     switch mode {
     case ParamPos:
@@ -85,7 +85,7 @@ func (state State) EvalParam(memIndex int, mode ParamMode) int {
 }
 
 // BinaryOpVal calculates
-func (state *State) BinaryOpVal(ip int, params []ParamMode, f func(int, int) int) {
+func (state *State) BinaryOpVal(ip MemoryIndex, params []ParamMode, f func(int, int) int) {
     a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
     target := state.Mem[ip+3]
     state.Mem[target] = f(a, b)
@@ -134,7 +134,7 @@ func (state *State) Eval() {
     case OpJumpTrue:
         a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
         if a != 0 {
-            state.IP = b
+            state.IP = MemoryIndex(b)
         } else {
             state.IP += 3
         }
@@ -142,7 +142,7 @@ func (state *State) Eval() {
     case OpJumpFalse:
         a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
         if a == 0 {
-            state.IP = b
+            state.IP = MemoryIndex(b)
         } else {
             state.IP += 3
         }
@@ -185,6 +185,7 @@ func Exec(program []int, inputs []int) *State {
     }
     programCopy := make([]int, len(program))
     copy(programCopy, program)
+
     state := MakeState(programCopy, inputs)
     state.Run()
     return state

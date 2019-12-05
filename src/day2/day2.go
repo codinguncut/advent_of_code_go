@@ -38,7 +38,7 @@ func RunPart2() int {
         }
     }
 
-    return 0
+    panic("no solution found")
 }
 
 // Main executes the code for the day 2 exercise
