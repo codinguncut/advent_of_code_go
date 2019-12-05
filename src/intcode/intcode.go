@@ -183,7 +183,9 @@ func Exec(program []int, inputs []int) *State {
     if inputs == nil {
         inputs = []int{}
     }
-    state := MakeState(program, inputs)
+    programCopy := make([]int, len(program))
+    copy(programCopy, program)
+    state := MakeState(programCopy, inputs)
     state.Run()
     return state
 }

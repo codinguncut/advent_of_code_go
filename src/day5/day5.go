@@ -8,9 +8,7 @@ import (
 
 // RunPart runs the program with given inputs
 func RunPart(program []int, inputs []int) []int {
-    programCopy := make([]int, len(program))
-    copy(programCopy, program)
-    state := intcode.Exec(programCopy, inputs)
+    state := intcode.Exec(program, inputs)
     return state.Outputs
 }
 
