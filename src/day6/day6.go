@@ -14,7 +14,7 @@ type orbits struct {
 }
 
 // constructor to create empty maps
-func makeorbits() orbits {
+func makeOrbits() orbits {
     return orbits{
         parents: map[string]string{},
         paths: map[string]([]string){},
@@ -22,43 +22,48 @@ func makeorbits() orbits {
 }
 
 // read lines of orbit relationships into "orbits"
-func (orbits *orbits) read(lines []string) {
+func (orbs *orbits) read(lines []string) {
     // create root node with empty path
-    orbits.paths["COM"] = []string{}
+    orbs.paths["COM"] = []string{}
 
     for _, line := range lines {
         strs := strings.Split(string(line), ")")
         a, b := strs[0], strs[1]
-        orbits.parents[b] = a
+        orbs.parents[b] = a
     }
 }
 
 // calculate paths from all nodes to COM
-func (orbits *orbits) calcPath(name string) []string {
-    parent := orbits.parents[name]
+func (orbs *orbits) calcPath(name string) []string {
+    parent := orbs.parents[name]
     
-    if orbits.paths[name] == nil {
-        // TODO: careful with appending shared slice
-        orbits.paths[name] = append(orbits.calcPath(parent), parent)
+    if orbs.paths[name] == nil {
+        if parent == "" {
+            panic(fmt.Sprintf("something went terribly wrong %s\n%v",
+                name, orbs))
+        }
+
+        // TODO: need to be careful with appending to shared slice?
+        orbs.paths[name] = append(orbs.calcPath(parent), parent)
     }
-    return orbits.paths[name]
+    return orbs.paths[name]
 }
 
 // calculate the total path length of the graph
-func (orbits *orbits) calcPathLens() (totalPathLen int) {
-    for k := range orbits.parents {
-        path := orbits.calcPath(k)
+func (orbs *orbits) calcPathLens() (totalPathLen int) {
+    for k := range orbs.parents {
+        path := orbs.calcPath(k)
         totalPathLen += len(path)
     }
     return totalPathLen
 }
 
-func (orbits *orbits) part2() int {
+func (orbs *orbits) part2() int {
     // make sure paths are pre-calculated
-    orbits.calcPathLens()
+    orbs.calcPathLens()
 
-    you := orbits.paths["YOU"]
-    san := orbits.paths["SAN"]
+    you := orbs.paths["YOU"]
+    san := orbs.paths["SAN"]
 
     lenCommon := 0
     for i := 0; i < len(you); i++ {
@@ -77,9 +82,9 @@ func (orbits *orbits) part2() int {
 // Main is the entrypoint for the day 6 solutions
 func Main() {
     lines := aoc.ReadLines("data/day6_input.txt")
-    orbits := makeorbits()
-    orbits.read(lines)
+    orbs := makeOrbits()
+    orbs.read(lines)
 
-    fmt.Println("day6.1", orbits.calcPathLens())
-    fmt.Println("day6.2", orbits.part2())
+    fmt.Println("day6.1", orbs.calcPathLens())
+    fmt.Println("day6.2", orbs.part2())
 }

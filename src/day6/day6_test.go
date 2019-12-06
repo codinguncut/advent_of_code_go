@@ -18,12 +18,11 @@ func TestCalcPathLens(t *testing.T) {
         "J)K",
         "K)L",
     }
-
     want := 42
 
-    orbits := makeorbits()
-    orbits.read(lines)
-    got := orbits.calcPathLens()
+    orbs := makeOrbits()
+    orbs.read(lines)
+    got := orbs.calcPathLens()
     if got != want {
         t.Errorf("result was incorrect, got: %v, want: %v", got, want)
     }
@@ -45,12 +44,11 @@ func TestPart2(t *testing.T) {
         "K)YOU",
         "I)SAN",
     }
-
     want := 4
 
-    orbits := makeorbits()
-    orbits.read(lines)
-    got := orbits.part2()
+    orbs := makeOrbits()
+    orbs.read(lines)
+    got := orbs.part2()
     if got != want {
         t.Errorf("result was incorrect, got: %v, want: %v", got, want)
     }
