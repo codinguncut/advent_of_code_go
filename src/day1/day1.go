@@ -1,7 +1,6 @@
 package day1
 
 import (
-    "fmt"
     "math"
     "aoc"
 )
@@ -12,6 +11,7 @@ func CalcFuelRequired(mass int, doRecurse bool) int {
     if !doRecurse {
         return fuel
     }
+    // perform recursive calculation
     if fuel > 0 {
         return fuel + CalcFuelRequired(fuel, true)
     }
@@ -29,6 +29,6 @@ func CalcTotalFuel(masses []int, doRecurse bool) (total int) {
 // Main is the main function to be called for day 1 exercise
 func Main() {
     masses := aoc.ReadFileInts("data/day1_input.txt")
-    fmt.Println("day1.1", CalcTotalFuel(masses, false))
-    fmt.Println("day1.2", CalcTotalFuel(masses, true))
+    aoc.CheckMain("day1.1", CalcTotalFuel(masses, false), 3365459)
+    aoc.CheckMain("day1.2", CalcTotalFuel(masses, true), 5045301)
 }

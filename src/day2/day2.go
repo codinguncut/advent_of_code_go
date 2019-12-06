@@ -1,7 +1,6 @@
 package day2
 
 import (
-    "fmt"
     "aoc"
     "intcode"
 )
@@ -9,30 +8,31 @@ import (
 // RunPart1 takes two initializing values and a program, sets cells 1 and 2,
 //  and returns the resulting cell 0 value
 func RunPart1(i int, j int, program []int) int {
-    // initialize "noun" and "verb" at positions 1 and 2
-    program[1] = i
-    program[2] = j
+    // TODO: is this copying the slice or the underlying array??
+    // could use `append([]int(nil), program...)`
+    memory := make([]int, len(program))
+    copy(memory, program)
 
-    state := intcode.Exec(program, nil)
+    // initialize "noun" and "verb" at positions 1 and 2
+    memory[1] = i
+    memory[2] = j
+
+    state := intcode.Exec(memory, nil)
     return state.Mem[0]
 }
 
 // RunPart2 loads the input from the file and brute-forces all possible
 //  values for cells 1 and 2 to find a resulting target value
-func RunPart2() int {
+func RunPart2(target int) int {
     program := aoc.ReadCommaInts("data/day2_input.txt")
 
     for i := range [99]int{} {
         for j := range [99]int{} {
-            memory := make([]int, len(program))
-            copy(memory, program)
-
-            res := RunPart1(i, j, memory)
+            res := RunPart1(i, j, program)
 
             // reached target value
-            if res == 19690720 {
+            if res == target {
                 nounAndVerb := i*100+j
-                // fmt.Println("noun", i, "verb", j, "res", nounAndVerb)
                 return nounAndVerb
             }
         }
@@ -45,6 +45,6 @@ func RunPart2() int {
 func Main() {
     program := aoc.ReadCommaInts("data/day2_input.txt")
 
-    fmt.Println("day2.1", RunPart1(12, 2, program))
-    fmt.Println("day2.2", RunPart2())
+    aoc.CheckMain("day2.1", RunPart1(12, 2, program), 2894520)
+    aoc.CheckMain("day2.2", RunPart2(19690720), 9342)
 }

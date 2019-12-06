@@ -1,6 +1,7 @@
 package aoc
 
 import (
+    "fmt"
     "io/ioutil"
     "strings"
     "strconv"
@@ -36,7 +37,7 @@ func ReadCommaInts(fname string) []int {
 
     vals := []int{}
     for _, str := range strings.Split(str, ",") {
-        val, err := strconv.ParseInt(str, 10, 32)
+        val, err := strconv.Atoi(str)
         Check(err)
         vals = append(vals, int(val))
     }
@@ -49,7 +50,7 @@ func ReadFileInts(fname string) []int {
 
     vals := []int{}
     for _, str := range strings.Split(str, "\n") {
-        val, err := strconv.ParseInt(str, 10, 32)
+        val, err := strconv.Atoi(str)
         Check(err)
         vals = append(vals, int(val))
     }
@@ -61,4 +62,18 @@ func Check(e error) {
     if e != nil {
         panic(e)
     }
+}
+
+// CheckOk panics of ok is not true
+func CheckOk(ok bool, str string) {
+    if !ok {
+        panic(str)
+    }
+}
+
+// CheckMain provides standardized reporting for each day results
+func CheckMain(label string, got int, want int) {
+    fmt.Println(label, got)
+    CheckOk(got == want, fmt.Sprintf("didn't match, got: %d, want: %d",
+        got, want))
 }

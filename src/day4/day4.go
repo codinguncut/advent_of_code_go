@@ -7,10 +7,10 @@ import (
 )
 
 // NumberToDigits converts an integer to a slice of its digits
+//  TODO: possibly faster with /10, %10, reverse
 func NumberToDigits(number int) []int {
     digits := []int{}
-    str := strconv.Itoa(number)
-    for _, v := range str {
+    for _, v := range strconv.Itoa(number) {
         digit, err := strconv.Atoi(string(v))
         aoc.Check(err)
         digits = append(digits, digit)
@@ -23,16 +23,16 @@ func NumberToDigits(number int) []int {
 //  that are then used to check whether the number is valid
 func CalcPreds(number int) (hasDouble, hasRepeating, isDecreasing bool) {
     digits := NumberToDigits(number)
-    last := digits[0]
-    digitCounts := map[int]int{last: 1}
+    prev := digits[0]
+    digitCounts := map[int]int{prev: 1}
 
     isDecreasing = false
     for _, v := range digits[1:] {
-        if v < last {
+        if v < prev {
             isDecreasing = true
         }
         digitCounts[v]++
-        last = v
+        prev = v
     }
 
     hasDouble = false
@@ -75,6 +75,6 @@ func Main() {
             count2++
         }
     }
-    fmt.Println("day4.1", count1)
-    fmt.Println("day4.2", count2)
+    fmt.Println("day4.1", count1, "==", 511)
+    fmt.Println("day4.2", count2, "==", 316)
 }

@@ -62,9 +62,11 @@ type Visited map[Coord]int
 
 // ParseSegment converts i.e. "U20" to `PathSegment{dir: up, length: 20}`
 func ParseSegment(path string) PathSegment {
-    length, err := strconv.ParseInt(path[1:], 10, 32)
+    length, err := strconv.Atoi(path[1:])
     aoc.Check(err)
-    return PathSegment{DirLookup[path[0:1]], int(length)} 
+    dir, ok := DirLookup[path[0:1]]
+    aoc.CheckOk(ok, fmt.Sprintf("DirLookup %v", path[0:1]))
+    return PathSegment{dir, int(length)} 
 }
 
 // ParsePath parses a string into its corresponding Path
@@ -93,8 +95,8 @@ func CalcVisited(path Path) Visited {
         for i := 0; i < segment.length; i++ {
             step++
             currLoc = currLoc.Add(segment.dir)
-            // only keep smallest step count in visited
-            if visited[currLoc] == 0 {
+            // only keep smallest/ first step count in visited
+            if _, ok := visited[currLoc]; !ok {
                 visited[currLoc] = step
             }
         }
@@ -107,7 +109,7 @@ func CalcVisited(path Path) Visited {
 func IntersectVisited(locs1, locs2 Visited) []Coord {
     coords := []Coord{}
     for k := range locs1 {
-        if locs2[k] > 0 {
+        if _, ok := locs2[k]; ok {
             coords = append(coords, k)
         }
     }
@@ -129,8 +131,8 @@ func FindClosest(coords []Coord) int {
 func FindShortest(locs1, locs2 Visited) int {
     dists := []int{}
     for k := range locs1 {
-        if locs2[k] > 0 {
-            dists = append(dists, locs1[k] + locs2[k])
+        if val, ok := locs2[k]; ok {
+            dists = append(dists, locs1[k] + val)
         }
     }
 
@@ -153,8 +155,8 @@ func Run(p1, p2 Path) int {
 // Main executes the code for the day 3 exercise
 func Main() {
     p1, p2 := ReadPaths()
-    fmt.Println("day3 closest", Run(p1, p2))
+    aoc.CheckMain("day3.1", Run(p1, p2), 446)
 
     l1, l2 := CalcVisited(p1), CalcVisited(p2)
-    fmt.Println("day3 shortest", FindShortest(l1, l2))
+    aoc.CheckMain("day3.2", FindShortest(l1, l2), 9006)
 }

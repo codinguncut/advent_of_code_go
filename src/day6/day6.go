@@ -3,7 +3,6 @@ package day6
 import (
     "aoc"
     "strings"
-    "fmt"
 )
 
 // orbits contains orbital relationships as well as cached calculated paths
@@ -23,9 +22,6 @@ func makeOrbits() orbits {
 
 // read lines of orbit relationships into "orbits"
 func (orbs *orbits) read(lines []string) {
-    // create root node with empty path
-    orbs.paths["COM"] = []string{}
-
     for _, line := range lines {
         strs := strings.Split(string(line), ")")
         a, b := strs[0], strs[1]
@@ -35,15 +31,14 @@ func (orbs *orbits) read(lines []string) {
 
 // calculate paths from all nodes to COM
 func (orbs *orbits) calcPath(name string) []string {
-    parent := orbs.parents[name]
+    parent, ok := orbs.parents[name]
+    if (!ok) {
+        // we have hit "COM"
+        return []string{}
+    }
     
-    if orbs.paths[name] == nil {
-        if parent == "" {
-            panic(fmt.Sprintf("something went terribly wrong %s\n%v",
-                name, orbs))
-        }
-
-        // TODO: need to be careful with appending to shared slice?
+    // path hasn't been precomputed yet
+    if _, ok := orbs.paths[name]; !ok {
         orbs.paths[name] = append(orbs.calcPath(parent), parent)
     }
     return orbs.paths[name]
@@ -62,8 +57,11 @@ func (orbs *orbits) part2() int {
     // make sure paths are pre-calculated
     orbs.calcPathLens()
 
-    you := orbs.paths["YOU"]
-    san := orbs.paths["SAN"]
+    you, ok := orbs.paths["YOU"]
+    aoc.CheckOk(ok, "paths[YOU]")
+
+    san, ok := orbs.paths["SAN"]
+    aoc.CheckOk(ok, "paths[SAN]")
 
     lenCommon := 0
     for i := 0; i < len(you); i++ {
@@ -85,6 +83,6 @@ func Main() {
     orbs := makeOrbits()
     orbs.read(lines)
 
-    fmt.Println("day6.1", orbs.calcPathLens())
-    fmt.Println("day6.2", orbs.part2())
+    aoc.CheckMain("day6.1", orbs.calcPathLens(), 402879)
+    aoc.CheckMain("day6.2", orbs.part2(), 484)
 }

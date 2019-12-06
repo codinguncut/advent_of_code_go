@@ -39,28 +39,28 @@ type State struct {
     IP MemoryIndex // instruction pointer
     Inputs []int
     Outputs []int
-    ReadInt (func(*State) int)
-    WriteInt (func(*State, int))
+    ReadInt (func() int)
+    WriteInt (func(int))
 }
 
 // MakeState is a constructor that creates a state with non-interactive
 //  read and write capability
 func MakeState(mem []int, inputs []int) *State {
-    readInt := func(state *State) int {
-        val := state.Inputs[0]
-        state.Inputs = state.Inputs[1:]
-        return val
-    }
-    writeInt := func(state *State, val int) {
-        state.Outputs = append(state.Outputs, val)
-    }
     state := &State{
         Mem: mem,
         IP: 0,
         Inputs: inputs,
         Outputs: []int{},
-        ReadInt: readInt,
-        WriteInt: writeInt,
+    }
+    // using closure over "state" for the below functions
+    //  NOTE: this will break when copying state
+    state.ReadInt = func() int {
+        val := state.Inputs[0]
+        state.Inputs = state.Inputs[1:]
+        return val
+    }
+    state.WriteInt = func(val int) {
+        state.Outputs = append(state.Outputs, val)
     }
     return state
 }
@@ -121,14 +121,14 @@ func (state *State) Eval() {
         })
 
     case OpInput:
-        val := state.ReadInt(state)
+        val := state.ReadInt()
         target := state.Mem[ip+1]
         state.Mem[target] = val
         state.IP += 2
 
     case OpOutput:
         val := state.EvalParam(ip+1, params[0])
-        state.WriteInt(state, val) 
+        state.WriteInt(val) 
         state.IP += 2
 
     case OpJumpTrue:

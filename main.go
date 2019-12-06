@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "day1"
     "day2"
     "day3"
@@ -10,12 +11,16 @@ import (
 )
 
 func main() {
-    if false {
-        day1.Main()
-        day2.Main()
-        day3.Main()
-        day4.Main()
-        day5.Main()
+    funcs := [](func()){
+        day1.Main,
+        day2.Main,
+        day3.Main,
+        day4.Main,
+        day5.Main,
+        day6.Main,
     }
-    day6.Main()
+    for _, f := range funcs {
+        f()
+        fmt.Println()
+    }
 }
