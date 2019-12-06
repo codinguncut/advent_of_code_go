@@ -55,7 +55,7 @@ func StringDeltas(a, b string) []int {
 // Pairwise makes O(n^2) string comparisons to find the string with
 //  distance == 1
 func Pairwise(strs []string) (common string) {
-    for i := 0; i < len(strs); i++ {
+    for i := range strs {
         for j := i+1; j < len(strs); j++ {
             deltas := StringDeltas(strs[i], strs[j])
             if len(deltas) == 1 {
