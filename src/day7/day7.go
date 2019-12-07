@@ -1,6 +1,8 @@
 /*Package day7 is
 OK, I'm really running out of rope here.
 This program is proof I don't properly understand Go yet ;)
+
+Very clean solutions on the reddit thread ;(
 */
 package day7
 
@@ -8,7 +10,6 @@ import (
     "fmt"
     "aoc"
     "intcode"
-    "sync"
 )
 
 // I had weird artifacts when straight up "append"ing
@@ -74,52 +75,31 @@ func checkPerm(program, perm []int) int {
 Creating daisy chain of "State"s.
 Starting with a placeholder for first input, and finally
     replacing the placeholder with the last output
+
+NOTE: It would have been a million times easier to stop each Intcode
+    whenever it is looking for input instead of using actual concurrency,
+    but oh well ;)
 */
 func checkPermFeedback(program, perm []int) int {
-    var curr chan int = nil // placeholder
-
-    // keeping track of input channels separately to send
-    //  phase and initial 0 into. can't do so using state.Inputs
-    //  since that is a "<-chan"
     inputChannels := [](chan int){}
-    states := [](*intcode.State){}
-
-    // creating the states and daisy chaining the inputs/ outputs
-    //  but not running them
     for range perm {
+        // last output needs to be buffered, since it writes one
+        //  additional final value
+        ch := make(chan int, 1)
+        inputChannels = append(inputChannels, ch)
+    }
+
+    finished := make(chan bool, len(perm))
+
+    for i := range perm {
         programCopy := make([]int, len(program))
         copy(programCopy, program)
 
-        // last output needs to be buffered, since it writes one
-        //  additional final value
-        outputs := make(chan int, 1)
+        j := (i+1) % len(perm)
+        state := intcode.MakeState(programCopy,
+            inputChannels[i], inputChannels[j])
 
-        state := intcode.MakeState(programCopy, curr, outputs)
-        states = append(states, state)
-        inputChannels = append(inputChannels, curr)
-        curr = outputs // daisy chain
-    }
-
-    // close the loop tying last output into first input
-    states[0].Inputs = curr 
-    inputChannels[0] = curr
-    finalOutput := curr
-
-    doIt := func(i int, state *intcode.State, waitgroup *sync.WaitGroup) {
-        // FIXME: duplication between "finished" and "WaitGroup"
-        finished := make(chan bool)
         go state.Run(finished)
-        <- finished
-        close(finished)
-        waitgroup.Done()
-    }
-
-    // launching the daisy-chained "State"s
-    //  using WaitGroup to synchronize and wait until final value is ready
-    var waitgroup sync.WaitGroup
-    for i, state := range states {
-        waitgroup.Add(1)
-        go doIt(i, state, &waitgroup)
 
         // sending initial phase param into each state
         inputChannels[i] <- perm[i]
@@ -128,9 +108,14 @@ func checkPermFeedback(program, perm []int) int {
     // sending initial 0 value into first "State"
     //  which kicks off the calculation
     inputChannels[0] <- 0
-    waitgroup.Wait()
 
-    res := <- finalOutput
+    // wait for 5 states to finish
+    for range perm {
+        <- finished
+    }
+    close(finished)
+
+    res := <- inputChannels[0]
 
     // NOTE: intcode closes all output channels
     // since all inputs are also outputs they are already closed
