@@ -37,30 +37,19 @@ const (
 type State struct {
     Mem []int // memory
     IP MemoryIndex // instruction pointer
-    Inputs []int
-    Outputs []int
-    ReadInt (func() int)
-    WriteInt (func(int))
+    Inputs <-chan int
+    Outputs chan<- int
+    OutputVals []int
 }
 
 // MakeState is a constructor that creates a state with non-interactive
 //  read and write capability
-func MakeState(mem []int, inputs []int) *State {
+func MakeState(mem []int, inputs, outputs chan int) *State {
     state := &State{
         Mem: mem,
         IP: 0,
         Inputs: inputs,
-        Outputs: []int{},
-    }
-    // using closure over "state" for the below functions
-    //  NOTE: this will break when copying state
-    state.ReadInt = func() int {
-        val := state.Inputs[0]
-        state.Inputs = state.Inputs[1:]
-        return val
-    }
-    state.WriteInt = func(val int) {
-        state.Outputs = append(state.Outputs, val)
+        Outputs: outputs,
     }
     return state
 }
@@ -121,14 +110,14 @@ func (state *State) Eval() {
         })
 
     case OpInput:
-        val := state.ReadInt()
+        val := <- state.Inputs
         target := state.Mem[ip+1]
         state.Mem[target] = val
         state.IP += 2
 
     case OpOutput:
         val := state.EvalParam(ip+1, params[0])
-        state.WriteInt(val) 
+        state.Outputs <- val
         state.IP += 2
 
     case OpJumpTrue:
@@ -169,9 +158,11 @@ func (state *State) Eval() {
 }
 
 // Run runs the program starting at "state" and mutates it
-func (state *State) Run() {
+func (state *State) Run(finished chan bool) {
     for {
         if state.opcode() == OpDone {
+            finished <- true
+            close(state.Outputs)
             return
         }
         state.Eval()
@@ -179,14 +170,24 @@ func (state *State) Run() {
 }
 
 // Exec take a program, creates a State and runs it
-func Exec(program []int, inputs []int) *State {
-    if inputs == nil {
-        inputs = []int{}
-    }
+func Exec(program []int, inputVals []int) *State {
     programCopy := make([]int, len(program))
     copy(programCopy, program)
 
-    state := MakeState(programCopy, inputs)
-    state.Run()
+    inputs, outputs, finished := make(chan int), make(chan int), make(chan bool, 1)
+
+    go func() {
+        for _, v := range inputVals {
+            inputs <- v
+        }
+        close(inputs)
+    }()
+
+    state := MakeState(programCopy, inputs, outputs)
+    go state.Run(finished)
+    for v := range outputs {
+        state.OutputVals = append(state.OutputVals, v)
+    }
+    close(finished)
     return state
 }

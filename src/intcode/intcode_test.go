@@ -73,7 +73,7 @@ func TestDay5(t *testing.T) {
     }
 
     for _, table := range tables {
-        got := Exec(table.program, table.inputs).Outputs
+        got := Exec(table.program, table.inputs).OutputVals
         if !reflect.DeepEqual(got, table.outputs) {
             t.Errorf("result was incorrect, got: %v, want: %v",
                 got, table.outputs)

@@ -1,7 +1,6 @@
 package day4
 
 import (
-    "fmt"
     "strconv"
     "aoc"
 )
@@ -75,6 +74,6 @@ func Main() {
             count2++
         }
     }
-    fmt.Println("day4.1", count1, "==", 511)
-    fmt.Println("day4.2", count2, "==", 316)
+    aoc.CheckMain("day4.1", count1, 511)
+    aoc.CheckMain("day4.2", count2, 316)
 }

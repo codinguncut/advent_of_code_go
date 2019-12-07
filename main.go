@@ -8,6 +8,7 @@ import (
     "day4"
     "day5"
     "day6"
+    "day7"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
         day4.Main,
         day5.Main,
         day6.Main,
+        day7.Main,
     }
     for _, f := range funcs {
         f()
