@@ -161,6 +161,8 @@ func (state *State) Eval() {
 func (state *State) Run(finished chan bool) {
     for {
         if state.opcode() == OpDone {
+            // NOTE: this is a bit tricky sequencing-wise, and probably
+            //  requires finished or Outputs to be buffered
             finished <- true
             close(state.Outputs)
             return

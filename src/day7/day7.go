@@ -83,13 +83,12 @@ NOTE: It would have been a million times easier to stop each Intcode
 func checkPermFeedback(program, perm []int) int {
     inputChannels := [](chan int){}
     for range perm {
-        // last output needs to be buffered, since it writes one
-        //  additional final value
+        // last output needs to be buffered, since it writes one final value
         ch := make(chan int, 1)
         inputChannels = append(inputChannels, ch)
     }
 
-    finished := make(chan bool)
+    finished := make(chan bool, len(perm))
 
     for i := range perm {
         programCopy := make([]int, len(program))
