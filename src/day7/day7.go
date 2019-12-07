@@ -89,7 +89,7 @@ func checkPermFeedback(program, perm []int) int {
         inputChannels = append(inputChannels, ch)
     }
 
-    finished := make(chan bool, len(perm))
+    finished := make(chan bool)
 
     for i := range perm {
         programCopy := make([]int, len(program))
@@ -106,10 +106,9 @@ func checkPermFeedback(program, perm []int) int {
     }
 
     // sending initial 0 value into first "State"
-    //  which kicks off the calculation
     inputChannels[0] <- 0
 
-    // wait for 5 states to finish
+    // wait for all states to finish
     for range perm {
         <- finished
     }
