@@ -7,7 +7,6 @@ Very clean solutions on the reddit thread ;(
 package day7
 
 import (
-    "fmt"
     "aoc"
     "intcode"
 )
@@ -15,21 +14,21 @@ import (
 // I had weird artifacts when straight up "append"ing
 // I don't understand copy semantics of slices yet
 func drop(vals []int, index int) []int {
-    cp := make([]int, len(vals))
-    copy(cp, vals)
-    return append(cp[:index], cp[index+1:]...)
+    // FIXME!!!!
+    vals = append([]int(nil), vals...)
+    return append(vals[:index], vals[index+1:]...)
 }
 
 // defensive append?!?
 // *argh*
 func app(a []int, b... int) []int {
-    cp := make([]int, len(a))
-    copy(cp, a)
-    return append(cp, b...)
+    // FIXME!!!!
+    a = append([]int(nil), a...)
+    return append(a, b...)
 }
 
 // *argh*
-func permutations(inputs []int) [][]int {
+func permutations(inputs []int) (res [][]int) {
     vals := make(chan []int)
 
     // my clunky attempt at a (recursive) generator
@@ -54,95 +53,74 @@ func permutations(inputs []int) [][]int {
     }
     go worker(nil, inputs, vals)
 
-    res := []([]int){}
     for v := range vals {
         res = append(res, v)
     }
-    return res
+    return
 }
 
-func checkPerm(program, perm []int) int {
-    val := 0
+func checkPerm(program, perm []int) (val int) {
     // iteratively computing amplifier series
     for _, phase:= range perm {
         state := intcode.Exec(program, []int{phase, val})
         val = state.OutputVals[0]
     }
-    return val
+    return
 }
 
-/*
-Creating daisy chain of "State"s.
-Starting with a placeholder for first input, and finally
-    replacing the placeholder with the last output
-
-NOTE: It would have been a million times easier to stop each Intcode
-    whenever it is looking for input instead of using actual concurrency,
-    but oh well ;)
-*/
 func checkPermFeedback(program, perm []int) int {
-    inputChannels := [](chan int){}
+    chans := [](chan int){}
     for range perm {
-        // last output needs to be buffered, since it writes one final value
-        ch := make(chan int, 1)
-        inputChannels = append(inputChannels, ch)
+        chans = append(chans, make(chan int, 1))
     }
 
-    finished := make(chan bool, len(perm))
+    done := make(chan bool, len(perm))
 
-    for i := range perm {
-        programCopy := make([]int, len(program))
-        copy(programCopy, program)
-
+    for i, phase := range perm {
+        cp := append([]int(nil), program...)
         j := (i+1) % len(perm)
-        state := intcode.MakeState(programCopy,
-            inputChannels[i], inputChannels[j])
+        state := intcode.MakeState(cp, chans[i], chans[j])
 
-        go state.Run(finished)
+        go state.Run(done)
 
-        // sending initial phase param into each state
-        inputChannels[i] <- perm[i]
+        chans[i] <- phase
     }
 
     // sending initial 0 value into first "State"
-    inputChannels[0] <- 0
+    initialVal := 0
+    chans[0] <- initialVal
 
     // wait for all states to finish
     for range perm {
-        <- finished
+        <- done
     }
-    close(finished)
-
-    res := <- inputChannels[0]
+    close(done)
 
     // NOTE: intcode closes all output channels
     // since all inputs are also outputs they are already closed
 
-    return res
+    return <- chans[0]
 }
 
 
 // RunPart runs the program with given inputs
-func RunPart(program []int, ps []int, f func([]int, []int) int) int {
-    max := 0
+func RunPart(program []int, ps []int, f func([]int, []int) int) (max int) {
     for _, perm := range permutations(ps) {
         val := f(program, perm)
         if val > max {
             max = val
         }
     }
-    return max
+    return
 }
 
 // Main executes the code for the day 2 exercise
 func Main() {
     program := aoc.ReadCommaInts("data/day7_input.txt")
     phaseSettings := []int{0, 1, 2, 3, 4}
-    fmt.Println("day7.1", RunPart(program, phaseSettings, checkPerm))
+    aoc.CheckMain("day7.1", RunPart(program, phaseSettings, checkPerm), 46014)
 
     phaseSettings = []int{5, 6, 7, 8, 9}
-    fmt.Println("day7.2", RunPart(program, phaseSettings, checkPermFeedback))
-
-    // aoc.CheckMain("day5.1", RunPart(program, []int{1}), 15314507)
-    // aoc.CheckMain("day5.2", RunPart(program, []int{5}), 652726)
+    aoc.CheckMain("day7.2", RunPart(program, phaseSettings, checkPermFeedback),
+        19581200)
 }

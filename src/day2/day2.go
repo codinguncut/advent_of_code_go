@@ -10,14 +10,13 @@ import (
 func RunPart1(i int, j int, program []int) int {
     // TODO: is this copying the slice or the underlying array??
     // could use `append([]int(nil), program...)`
-    memory := make([]int, len(program))
-    copy(memory, program)
+    program = append([]int(nil), program...)
 
     // initialize "noun" and "verb" at positions 1 and 2
-    memory[1] = i
-    memory[2] = j
+    program[1] = i
+    program[2] = j
 
-    state := intcode.Exec(memory, nil)
+    state := intcode.Exec(program, nil)
     return state.Mem[0]
 }
 

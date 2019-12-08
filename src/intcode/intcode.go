@@ -158,12 +158,12 @@ func (state *State) Eval() {
 }
 
 // Run runs the program starting at "state" and mutates it
-func (state *State) Run(finished chan bool) {
+func (state *State) Run(done chan bool) {
     for {
         if state.opcode() == OpDone {
             // NOTE: this is a bit tricky sequencing-wise, and probably
-            //  requires finished or Outputs to be buffered
-            finished <- true
+            //  requires either done or Outputs to be buffered
+            done <- true
             close(state.Outputs)
             return
         }

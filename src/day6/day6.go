@@ -42,9 +42,8 @@ func (orbs *orbits) calcPath(name string) []string {
         // FIXME: is the append an issue?
         orbs.paths[name] = append(orbs.calcPath(parent), parent)
     }
-    cp := make([]string, len(orbs.paths[name]))
-    copy(cp, orbs.paths[name])
-    return cp
+    paths := append([]string(nil), orbs.paths[name]...)
+    return paths
 }
 
 // calculate the total path length of the graph
@@ -53,7 +52,7 @@ func (orbs *orbits) calcPathLens() (totalPathLen int) {
         path := orbs.calcPath(k)
         totalPathLen += len(path)
     }
-    return totalPathLen
+    return
 }
 
 func (orbs *orbits) part2() int {

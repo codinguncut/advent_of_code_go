@@ -7,14 +7,13 @@ import (
 
 // NumberToDigits converts an integer to a slice of its digits
 //  TODO: possibly faster with /10, %10, reverse
-func NumberToDigits(number int) []int {
-    digits := []int{}
+func NumberToDigits(number int) (digits []int) {
     for _, v := range strconv.Itoa(number) {
         digit, err := strconv.Atoi(string(v))
         aoc.Check(err)
         digits = append(digits, digit)
     }
-    return digits
+    return
 }
 
 

@@ -70,25 +70,22 @@ func ParseSegment(path string) PathSegment {
 }
 
 // ParsePath parses a string into its corresponding Path
-func ParsePath(line string) Path {
-    path := Path{}
+func ParsePath(line string) (path Path) {
     for _, part := range strings.Split(line, ",") {
         path = append(path, ParseSegment(part))
     }
-    return path
+    return
 }
 
 // ReadPaths reads an input file and returns two paths
 func ReadPaths() (p1, p2 Path) {
     lines := aoc.ReadLines("data/day3_input.txt")
-    p1 = ParsePath(lines[0])
-    p2 = ParsePath(lines[1])
-    return
+    return ParsePath(lines[0]), ParsePath(lines[1])
 }
 
 // CalcVisited populates the Visited data type from a given Path
-func CalcVisited(path Path) Visited {
-    visited := Visited{}
+func CalcVisited(path Path) (visited Visited) {
+    visited = Visited{}
     currLoc := Origin
     step := 0
     for _, segment := range path {
@@ -101,34 +98,33 @@ func CalcVisited(path Path) Visited {
             }
         }
     }
-    return visited
+    return
 }
 
 // IntersectVisited finds all coordinates for which the two given
 //  Paths/ Visited's overlap
-func IntersectVisited(locs1, locs2 Visited) []Coord {
-    coords := []Coord{}
+func IntersectVisited(locs1, locs2 Visited) (coords []Coord) {
     for k := range locs1 {
         if _, ok := locs2[k]; ok {
             coords = append(coords, k)
         }
     }
-    return coords
+    return
 }
 
 // FindClosest finds the closest intersection coordinate by manhattan distance
-func FindClosest(coords []Coord) int {
-    min := coords[0].CalcManhattan()
+func FindClosest(coords []Coord) (min int) {
+    min = coords[0].CalcManhattan()
     for _, coord := range coords[1:] {
         if coord.CalcManhattan() < min {
             min = coord.CalcManhattan()
         }
     }
-    return min
+    return
 }
 
 // FindShortest finds the shortest intersection by total circuit length
-func FindShortest(locs1, locs2 Visited) int {
+func FindShortest(locs1, locs2 Visited) (min int) {
     dists := []int{}
     for k := range locs1 {
         if val, ok := locs2[k]; ok {
@@ -137,13 +133,13 @@ func FindShortest(locs1, locs2 Visited) int {
     }
 
     // two-pass "min" to avoid arbitrary min-seeding value
-    min := dists[0]
+    min = dists[0]
     for _, v := range dists[1:] {
         if v < min {
             min = v
         }
     }
-    return min
+    return
 }
 
 // Run executes part 1 of the day 3 exercise
