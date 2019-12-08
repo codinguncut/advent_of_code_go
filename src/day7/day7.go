@@ -27,35 +27,19 @@ func app(a []int, b... int) []int {
     return append(a, b...)
 }
 
-// *argh*
 func permutations(inputs []int) (res [][]int) {
-    vals := make(chan []int)
-
-    // my clunky attempt at a (recursive) generator
-    // FIXME: would be much better with a stack and iteration
-    // declare worker beforehand to enable recursion ;)
-    var worker func(vals, inputs []int, res chan []int)
-    worker = func(vals, inputs []int, res chan []int) {
-        // leaf node
-        if len(inputs) == 0 {
-            res <- vals
-            return
+    var worker func(ins, outs []int, vals *[][]int)
+    worker = func(ins, outs []int, vals *[][]int) {
+        if len(ins) == 0 {
+            *vals = append(*vals, outs)
         }
-        for i := range inputs {
-            val := inputs[i]
-            rest := drop(inputs, i)
-            worker(app(vals, val), rest, res)
-        }
-        // root node
-        if len(vals) == 0 {
-            close(res)
+        for i := range ins {
+            val, rest := ins[i], drop(ins, i)
+            worker(rest, app(outs, val), vals)
         }
     }
-    go worker(nil, inputs, vals)
 
-    for v := range vals {
-        res = append(res, v)
-    }
+    worker(inputs, []int(nil), &res)
     return
 }
 
