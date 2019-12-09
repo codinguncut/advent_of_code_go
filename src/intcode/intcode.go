@@ -102,12 +102,24 @@ func (state State) EvalParam(memIndex MemIdx, mode ParamMode) CellType {
     }
 }
 
+func (state *State) setTarget (memIndex MemIdx, mode ParamMode, value CellType) {
+    target := MemIdx(state.Mem[memIndex])
+    switch mode {
+    case ParamPos:
+        state.Mem[target] = value
+    case ParamRel:
+        state.Mem[state.RelBase + target] = value
+    default:
+        panic(fmt.Sprintf("unsupported ParamMode %v", mode))
+    }
+}
+
+
 // BinaryOpVal calculates
 func (state *State) BinaryOpVal(ip MemIdx, params []ParamMode,
         f func(a, b CellType) CellType) {
     a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
-    target := state.Mem[ip+3]
-    state.Mem[MemIdx(target)] = f(a, b)
+    state.setTarget(ip+3, params[2], f(a, b))
     state.IP += 4
 }
 
@@ -141,8 +153,7 @@ func (state *State) Eval() {
 
     case OpInput:
         val := <- state.Inputs
-        target := state.Mem[ip+1]
-        state.Mem[MemIdx(target)] = val
+        state.setTarget(ip+1, params[0], val)
         state.IP += 2
 
     case OpOutput:
@@ -184,7 +195,7 @@ func (state *State) Eval() {
 
     case OpAdjustRel:
         a := state.EvalParam(ip+1, params[0])
-        state.RelBase = MemIdx(a)
+        state.RelBase += MemIdx(a)
         state.IP += 2
 
     default:

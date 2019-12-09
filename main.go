@@ -10,10 +10,12 @@ import (
     "day6"
     "day7"
     "day8"
+    "day9"
 )
 
 func main() {
     funcs := [](func()){
+        day9.Main,
         day8.Main,
         day7.Main,
         day6.Main,
