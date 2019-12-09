@@ -44,6 +44,19 @@ func ReadCommaInts(fname string) []int {
     return vals
 }
 
+// ReadCommaInts64 reads comma-separated integers from file
+func ReadCommaInts64(fname string) (vals []int64) {
+    str := strings.TrimSpace(ReadFile(fname))
+
+    for _, str := range strings.Split(str, ",") {
+        val, err := strconv.ParseInt(str, 10, 64)
+        Check(err)
+        vals = append(vals, val)
+    }
+    return vals
+}
+
+
 // ReadFileInts reads integers from file, one per line
 func ReadFileInts(fname string) []int {
     str := strings.TrimSpace(ReadFile(fname))

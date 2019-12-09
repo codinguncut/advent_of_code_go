@@ -13,55 +13,55 @@ import (
 
 // I had weird artifacts when straight up "append"ing
 // I don't understand copy semantics of slices yet
-func drop(vals []int, index int) []int {
+func drop(vals []int64, index int64) []int64 {
     // FIXME!!!!
-    vals = append([]int(nil), vals...)
+    vals = append([]int64(nil), vals...)
     return append(vals[:index], vals[index+1:]...)
 }
 
 // defensive append?!?
 // *argh*
-func app(a []int, b... int) []int {
+func app(a []int64, b... int64) []int64 {
     // FIXME!!!!
-    a = append([]int(nil), a...)
+    a = append([]int64(nil), a...)
     return append(a, b...)
 }
 
-func permutations(inputs []int) (res [][]int) {
-    var worker func(ins, outs []int, vals *[][]int)
-    worker = func(ins, outs []int, vals *[][]int) {
+func permutations(inputs []int64) (res [][]int64) {
+    var worker func(ins, outs []int64, vals *[][]int64)
+    worker = func(ins, outs []int64, vals *[][]int64) {
         if len(ins) == 0 {
             *vals = append(*vals, outs)
         }
         for i := range ins {
-            val, rest := ins[i], drop(ins, i)
+            val, rest := ins[int64(i)], drop(ins, int64(i))
             worker(rest, app(outs, val), vals)
         }
     }
 
-    worker(inputs, []int(nil), &res)
+    worker(inputs, []int64(nil), &res)
     return
 }
 
-func checkPerm(program, perm []int) (val int) {
+func checkPerm(program, perm []int64) (val int64) {
     // iteratively computing amplifier series
     for _, phase:= range perm {
-        state := intcode.Exec(program, []int{phase, val})
+        state := intcode.Exec(program, []int64{phase, val})
         val = state.OutputVals[0]
     }
     return
 }
 
-func checkPermFeedback(program, perm []int) int {
-    chans := [](chan int){}
+func checkPermFeedback(program, perm []int64) int64 {
+    chans := [](chan int64){}
     for range perm {
-        chans = append(chans, make(chan int, 1))
+        chans = append(chans, make(chan int64, 1))
     }
 
     done := make(chan bool, len(perm))
 
     for i, phase := range perm {
-        cp := append([]int(nil), program...)
+        cp := append([]int64(nil), program...)
         j := (i+1) % len(perm)
         state := intcode.MakeState(cp, chans[i], chans[j])
 
@@ -71,7 +71,7 @@ func checkPermFeedback(program, perm []int) int {
     }
 
     // sending initial 0 value into first "State"
-    initialVal := 0
+    var initialVal int64 = 0
     chans[0] <- initialVal
 
     // wait for all states to finish
@@ -88,7 +88,7 @@ func checkPermFeedback(program, perm []int) int {
 
 
 // RunPart runs the program with given inputs
-func RunPart(program []int, ps []int, f func([]int, []int) int) (max int) {
+func RunPart(program, ps []int64, f func(a, b []int64) int64) (max int64) {
     for _, perm := range permutations(ps) {
         val := f(program, perm)
         if val > max {
@@ -100,11 +100,11 @@ func RunPart(program []int, ps []int, f func([]int, []int) int) (max int) {
 
 // Main executes the code for the day 2 exercise
 func Main() {
-    program := aoc.ReadCommaInts("data/day7_input.txt")
-    phaseSettings := []int{0, 1, 2, 3, 4}
-    aoc.CheckMain("day7.1", RunPart(program, phaseSettings, checkPerm), 46014)
+    program := aoc.ReadCommaInts64("data/day7_input.txt")
+    phaseSettings := []int64{0, 1, 2, 3, 4}
+    aoc.CheckMain("day7.1", int(RunPart(program, phaseSettings, checkPerm)), 46014)
 
-    phaseSettings = []int{5, 6, 7, 8, 9}
-    aoc.CheckMain("day7.2", RunPart(program, phaseSettings, checkPermFeedback),
+    phaseSettings = []int64{5, 6, 7, 8, 9}
+    aoc.CheckMain("day7.2", int(RunPart(program, phaseSettings, checkPermFeedback)),
         19581200)
 }

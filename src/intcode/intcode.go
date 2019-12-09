@@ -7,8 +7,13 @@ import (
 // Opcode represents operations that the processor supports
 type Opcode int
 
+// CellType is the type of memory cells
+//  would have preferred a "new type", but was too painful for casting
+//  arrays
+type CellType = int64
+
 // MemIdx is used to access values in memory
-type MemIdx int
+type MemIdx CellType
 
 // opcodes supported by the processor
 const (
@@ -20,6 +25,7 @@ const (
     OpJumpFalse = 6
     OpLessThan = 7
     OpEquals = 8
+    OpAdjustRel = 9
     OpDone = 99
 )
 
@@ -30,44 +36,47 @@ type ParamMode int
 const (
     ParamPos = 0
     ParamImm = 1
+    ParamRel = 2
 )
 
 // State data type contains the program memory and the instruction pointer.
 //  In addition it manages inputs and outputs of the program
 type State struct {
-    Mem map[MemIdx]int
+    Mem map[MemIdx]CellType
     IP MemIdx
-    Inputs <-chan int
-    Outputs chan<- int
-    OutputVals []int
+    RelBase MemIdx
+    Inputs <-chan CellType
+    Outputs chan<- CellType
+    OutputVals []CellType
 }
 
 // MakeState is a constructor that creates a state with non-interactive
 //  read and write capability
-func MakeState(mem []int, inputs, outputs chan int) *State {
-    mp := map[MemIdx]int{}
+func MakeState(mem []CellType, inputs, outputs chan CellType) *State {
+    mp := map[MemIdx]CellType{}
     for i, v := range mem {
-        mp[MemIdx(i)] = v
+        mp[MemIdx(i)] = CellType(v)
     }
     state := &State{
         Mem: mp,
         IP: 0,
+        RelBase: 0,
         Inputs: inputs,
         Outputs: outputs,
     }
     return state
 }
 
-func (state State) memoryArray() []int {
-    max := 0
+func (state State) memoryArray() []CellType {
+    var max MemIdx = 0
     for k := range state.Mem {
-        if int(k) > max {
-            max = int(k)
+        if MemIdx(k) > max {
+            max = MemIdx(k)
         }
     }
-    arr := make([]int, max+1)
+    arr := make([]CellType, max+1)
     for k, v := range state.Mem {
-        arr[k] = v
+        arr[k] = CellType(v)
     }
     return arr
 }
@@ -79,20 +88,23 @@ func (state State) opcode() Opcode {
 
 
 // EvalParam evaluates value at memIndex based on ParamMode
-func (state State) EvalParam(memIndex MemIdx, mode ParamMode) int {
+func (state State) EvalParam(memIndex MemIdx, mode ParamMode) CellType {
     value := state.Mem[memIndex]
     switch mode {
     case ParamPos:
         return state.Mem[MemIdx(value)]
     case ParamImm:
         return value
+    case ParamRel:
+        return state.Mem[state.RelBase + MemIdx(value)]
     default:
         panic(fmt.Sprintf("unknown ParamMode %v", mode))
     }
 }
 
 // BinaryOpVal calculates
-func (state *State) BinaryOpVal(ip MemIdx, params []ParamMode, f func(int, int) int) {
+func (state *State) BinaryOpVal(ip MemIdx, params []ParamMode,
+        f func(a, b CellType) CellType) {
     a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
     target := state.Mem[ip+3]
     state.Mem[MemIdx(target)] = f(a, b)
@@ -118,12 +130,12 @@ func (state *State) Eval() {
 
     switch opcode {
     case OpAdd:
-        state.BinaryOpVal(ip, params, func(a, b int) int {
+        state.BinaryOpVal(ip, params, func(a, b CellType) CellType {
             return a+b
         })
 
     case OpMul:
-        state.BinaryOpVal(ip, params, func(a, b int) int {
+        state.BinaryOpVal(ip, params, func(a, b CellType) CellType{
             return a*b
         })
 
@@ -155,7 +167,7 @@ func (state *State) Eval() {
         }
 
     case OpLessThan:
-        state.BinaryOpVal(ip, params, func(a, b int) int {
+        state.BinaryOpVal(ip, params, func(a, b CellType) CellType {
             if a < b {
                 return 1
             }
@@ -163,12 +175,17 @@ func (state *State) Eval() {
         })
 
     case OpEquals:
-        state.BinaryOpVal(ip, params, func(a, b int) int {
+        state.BinaryOpVal(ip, params, func(a, b CellType) CellType {
             if a == b {
                 return 1
             }
             return 0
         })
+
+    case OpAdjustRel:
+        a := state.EvalParam(ip+1, params[0])
+        state.RelBase = MemIdx(a)
+        state.IP += 2
 
     default:
         panic(fmt.Sprintf("unknown opcode %v", opcode))
@@ -190,11 +207,10 @@ func (state *State) Run(done chan bool) {
 }
 
 // Exec take a program, creates a State and runs it
-func Exec(program []int, inputVals []int) *State {
-    programCopy := make([]int, len(program))
-    copy(programCopy, program)
+func Exec(program []CellType, inputVals []CellType) *State {
+    program = append([]CellType(nil), program...)
 
-    inputs, outputs, finished := make(chan int), make(chan int), make(chan bool, 1)
+    inputs, outputs, finished := make(chan CellType), make(chan CellType), make(chan bool, 1)
 
     go func() {
         for _, v := range inputVals {
@@ -203,10 +219,10 @@ func Exec(program []int, inputVals []int) *State {
         close(inputs)
     }()
 
-    state := MakeState(programCopy, inputs, outputs)
+    state := MakeState(program, inputs, outputs)
     go state.Run(finished)
     for v := range outputs {
-        state.OutputVals = append(state.OutputVals, v)
+        state.OutputVals = append(state.OutputVals, CellType(v))
     }
     close(finished)
     return state
