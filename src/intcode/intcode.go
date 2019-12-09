@@ -7,8 +7,8 @@ import (
 // Opcode represents operations that the processor supports
 type Opcode int
 
-// MemoryIndex is used to access values in memory
-type MemoryIndex int
+// MemIdx is used to access values in memory
+type MemIdx int
 
 // opcodes supported by the processor
 const (
@@ -35,8 +35,8 @@ const (
 // State data type contains the program memory and the instruction pointer.
 //  In addition it manages inputs and outputs of the program
 type State struct {
-    Mem []int // memory
-    IP MemoryIndex // instruction pointer
+    Mem map[MemIdx]int
+    IP MemIdx
     Inputs <-chan int
     Outputs chan<- int
     OutputVals []int
@@ -45,13 +45,31 @@ type State struct {
 // MakeState is a constructor that creates a state with non-interactive
 //  read and write capability
 func MakeState(mem []int, inputs, outputs chan int) *State {
+    mp := map[MemIdx]int{}
+    for i, v := range mem {
+        mp[MemIdx(i)] = v
+    }
     state := &State{
-        Mem: mem,
+        Mem: mp,
         IP: 0,
         Inputs: inputs,
         Outputs: outputs,
     }
     return state
+}
+
+func (state State) memoryArray() []int {
+    max := 0
+    for k := range state.Mem {
+        if int(k) > max {
+            max = int(k)
+        }
+    }
+    arr := make([]int, max+1)
+    for k, v := range state.Mem {
+        arr[k] = v
+    }
+    return arr
 }
 
 // get current opcode pointed at by instruction pointer
@@ -61,11 +79,11 @@ func (state State) opcode() Opcode {
 
 
 // EvalParam evaluates value at memIndex based on ParamMode
-func (state State) EvalParam(memIndex MemoryIndex, mode ParamMode) int {
+func (state State) EvalParam(memIndex MemIdx, mode ParamMode) int {
     value := state.Mem[memIndex]
     switch mode {
     case ParamPos:
-        return state.Mem[value]
+        return state.Mem[MemIdx(value)]
     case ParamImm:
         return value
     default:
@@ -74,10 +92,10 @@ func (state State) EvalParam(memIndex MemoryIndex, mode ParamMode) int {
 }
 
 // BinaryOpVal calculates
-func (state *State) BinaryOpVal(ip MemoryIndex, params []ParamMode, f func(int, int) int) {
+func (state *State) BinaryOpVal(ip MemIdx, params []ParamMode, f func(int, int) int) {
     a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
     target := state.Mem[ip+3]
-    state.Mem[target] = f(a, b)
+    state.Mem[MemIdx(target)] = f(a, b)
     state.IP += 4
 }
 
@@ -112,7 +130,7 @@ func (state *State) Eval() {
     case OpInput:
         val := <- state.Inputs
         target := state.Mem[ip+1]
-        state.Mem[target] = val
+        state.Mem[MemIdx(target)] = val
         state.IP += 2
 
     case OpOutput:
@@ -123,7 +141,7 @@ func (state *State) Eval() {
     case OpJumpTrue:
         a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
         if a != 0 {
-            state.IP = MemoryIndex(b)
+            state.IP = MemIdx(b)
         } else {
             state.IP += 3
         }
@@ -131,7 +149,7 @@ func (state *State) Eval() {
     case OpJumpFalse:
         a, b := state.EvalParam(ip+1, params[0]), state.EvalParam(ip+2, params[1])
         if a == 0 {
-            state.IP = MemoryIndex(b)
+            state.IP = MemIdx(b)
         } else {
             state.IP += 3
         }

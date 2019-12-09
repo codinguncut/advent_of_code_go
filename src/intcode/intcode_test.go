@@ -18,7 +18,7 @@ func TestExec(t *testing.T) {
 	}
 
     for _, table := range tables {
-        got := Exec(table.program, nil).Mem;
+        got := Exec(table.program, nil).memoryArray();
         if !reflect.DeepEqual(got, table.endState) {
             t.Errorf("result was incorrect, got: %v, want: %v",
                 got, table.endState)
@@ -48,7 +48,7 @@ func TestParamModes(t *testing.T) {
         {[]int{1101,100,-1,4,0}, []int{1101,100,-1,4,99}}, // 100-1=99
 	}
     for _, table := range tables {
-        got := Exec(table.program, nil).Mem
+        got := Exec(table.program, nil).memoryArray()
         if !reflect.DeepEqual(got, table.endState) {
             t.Errorf("result was incorrect, got: %v, want: %v",
                 got, table.endState)
