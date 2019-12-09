@@ -36,7 +36,7 @@ func imageToLayers(width, height int, data []int) (layers []Layer) {
 
 func countDigits(layers []Layer) (res [](map[int]int)) {
     for _, layer := range layers {
-        counts := make(map[int]int)
+        counts := map[int]int{}
         for _, v := range layer.data {
             counts[v]++
         }

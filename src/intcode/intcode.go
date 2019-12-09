@@ -54,7 +54,7 @@ type State struct {
 func MakeState(mem []CellType, inputs, outputs chan CellType) *State {
     mp := map[MemIdx]CellType{}
     for i, v := range mem {
-        mp[MemIdx(i)] = CellType(v)
+        mp[MemIdx(i)] = v
     }
     state := &State{
         Mem: mp,
