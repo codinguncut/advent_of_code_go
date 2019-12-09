@@ -7,9 +7,8 @@ import (
 // Opcode represents operations that the processor supports
 type Opcode int
 
-// CellType is the type of memory cells
-//  would have preferred a "new type", but was too painful for casting
-//  arrays
+// CellType is an alias type for memory cells
+//  NOTE: would have preferred a "new type", but too painful for array casting
 type CellType = int64
 
 // MemIdx is used to access values in memory
@@ -67,13 +66,18 @@ func MakeState(mem []CellType, inputs, outputs chan CellType) *State {
     return state
 }
 
+// get memory content as an array for testing purposes
+// TODO: move to intcode_test.go?
 func (state State) memoryArray() []CellType {
+    // find largest map key
     var max MemIdx = 0
     for k := range state.Mem {
-        if MemIdx(k) > max {
-            max = MemIdx(k)
+        if k > max {
+            max = k
         }
     }
+
+    // allocate array and copy elements
     arr := make([]CellType, max+1)
     for k, v := range state.Mem {
         arr[k] = CellType(v)
@@ -102,6 +106,7 @@ func (state State) EvalParam(memIndex MemIdx, mode ParamMode) CellType {
     }
 }
 
+// FIXME: remove duplication with EvalParam
 func (state *State) setTarget (memIndex MemIdx, mode ParamMode, value CellType) {
     target := MemIdx(state.Mem[memIndex])
     switch mode {
@@ -113,7 +118,6 @@ func (state *State) setTarget (memIndex MemIdx, mode ParamMode, value CellType) 
         panic(fmt.Sprintf("unsupported ParamMode %v", mode))
     }
 }
-
 
 // BinaryOpVal calculates
 func (state *State) BinaryOpVal(ip MemIdx, params []ParamMode,
@@ -135,7 +139,7 @@ func ParseOpcode(raw Opcode) (opcode Opcode, params []ParamMode) {
     return
 }
 
-// Eval evaluates opcode at "ip" and mutate "state" accordingly
+// Eval evaluates opcode at "ip" and mutates "state" accordingly
 func (state *State) Eval() {
     ip := state.IP
     opcode, params := ParseOpcode(state.opcode())
@@ -221,8 +225,10 @@ func (state *State) Run(done chan bool) {
 func Exec(program []CellType, inputVals []CellType) *State {
     program = append([]CellType(nil), program...)
 
-    inputs, outputs, finished := make(chan CellType), make(chan CellType), make(chan bool, 1)
+    inputs, outputs, done:= make(chan CellType), make(chan CellType), make(chan bool, 1)
 
+    // NOTE: current channel design does not allow for interactive inputs
+    //  for lack of way to request an input
     go func() {
         for _, v := range inputVals {
             inputs <- v
@@ -231,10 +237,10 @@ func Exec(program []CellType, inputVals []CellType) *State {
     }()
 
     state := MakeState(program, inputs, outputs)
-    go state.Run(finished)
+    go state.Run(done)
     for v := range outputs {
         state.OutputVals = append(state.OutputVals, CellType(v))
     }
-    close(finished)
+    close(done)
     return state
 }

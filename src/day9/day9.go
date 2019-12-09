@@ -10,7 +10,6 @@ import (
 func RunPart(program []int64, inputs []int64) int64 {
     state := intcode.Exec(program, inputs)
     outs := state.OutputVals
-    fmt.Println("opcodes", outs)
     return outs[len(outs)-1]
 }
 
