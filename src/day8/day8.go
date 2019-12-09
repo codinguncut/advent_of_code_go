@@ -9,7 +9,7 @@ import (
 
 // Layer is
 type Layer struct {
-    // FIXME: use 2d slice?
+    // TODO: use 2d slice which knows its width and height?
     data []int
     width int
     height int
@@ -26,7 +26,6 @@ func imageToLayers(width, height int, data []int) (layers []Layer) {
     mult := width * height
     for offset := 0; len(data[offset:]) > 0; offset += mult {
         layers = append(layers, Layer{
-            // FIXME: automatic mapping of data to slices
             data[offset:offset+mult],
             width,
             height,

@@ -11,22 +11,19 @@ import (
     "intcode"
 )
 
-// I had weird artifacts when straight up "append"ing
-// I don't understand copy semantics of slices yet
+// return copy of vals with element at "index" omitted
 func drop(vals []int64, index int64) []int64 {
-    // FIXME!!!!
     vals = append([]int64(nil), vals...)
     return append(vals[:index], vals[index+1:]...)
 }
 
-// defensive append?!?
-// *argh*
+// non-destructive append
 func app(a []int64, b... int64) []int64 {
-    // FIXME!!!!
     a = append([]int64(nil), a...)
     return append(a, b...)
 }
 
+// NOTE: stack based iteration would be also nice ;)
 func permutations(inputs []int64) (res [][]int64) {
     var worker func(ins, outs []int64, vals *[][]int64)
     worker = func(ins, outs []int64, vals *[][]int64) {
@@ -39,7 +36,7 @@ func permutations(inputs []int64) (res [][]int64) {
         }
     }
 
-    worker(inputs, []int64(nil), &res)
+    worker(inputs, nil, &res)
     return
 }
 
@@ -70,7 +67,6 @@ func checkPermFeedback(program, perm []int64) int64 {
         chans[i] <- phase
     }
 
-    // sending initial 0 value into first "State"
     var initialVal int64 = 0
     chans[0] <- initialVal
 

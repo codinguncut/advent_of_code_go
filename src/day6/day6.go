@@ -30,7 +30,7 @@ func (orbs *orbits) read(lines []string) {
 }
 
 // calculate paths from all nodes to COM
-func (orbs *orbits) calcPath(name string) []string {
+func (orbs *orbits) calcPath(name string) (paths []string) {
     parent, ok := orbs.parents[name]
     if (!ok) {
         // we have hit "COM"
@@ -39,11 +39,10 @@ func (orbs *orbits) calcPath(name string) []string {
     
     // path hasn't been precomputed yet
     if _, ok := orbs.paths[name]; !ok {
-        // FIXME: is the append an issue?
-        orbs.paths[name] = append(orbs.calcPath(parent), parent)
+        parentPath := append([]string(nil), orbs.calcPath(parent)...)
+        orbs.paths[name] = append(parentPath, parent)
     }
-    paths := append([]string(nil), orbs.paths[name]...)
-    return paths
+    return orbs.paths[name]
 }
 
 // calculate the total path length of the graph
