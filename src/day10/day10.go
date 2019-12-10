@@ -7,6 +7,10 @@ import (
     "sort"
 )
 
+// smallest acceptable delta for soft float comparison
+const epsilon = 1e-5
+
+// TODO: could combine vector and polar...
 type vector struct {
     x, y float64
 
@@ -14,7 +18,6 @@ type vector struct {
 
 // compare two floats for approximate equality
 func floatEqual(a, b float64) bool {
-    epsilon := 1e-5
     return math.Abs(a - b) < epsilon
 }
 
@@ -35,6 +38,16 @@ func dropPols(vals []polar, index int) []polar{
     return append(vals[:index], vals[index+1:]...)
 }
 
+func dropMany(vals []polar, indices map[int]bool) (res []polar) {
+    for i, p := range vals {
+        if _, ok := indices[i]; !ok {
+            res = append(res, p)
+        }
+    }
+    return
+}
+
+
 func (vec vector) magnitude() float64 {
     return math.Sqrt(vec.x*vec.x + vec.y*vec.y)
 }
@@ -51,10 +64,9 @@ func (vec vector) add(other vector) vector {
 func (vec vector) polar() polar {
     // NOTE: passing (x, -y) instead of (y, x)
     angle := math.Atan2(vec.x, -vec.y)
-    if angle < 0 {
-        // convert from [-pi, pi] to [0, 2pi]
-        angle = math.Mod(angle + 2.0 * math.Pi, 2.0 * math.Pi)
-    }
+
+    // convert from [-pi, pi] to [0, 2*pi]
+    angle = math.Mod(angle + 2.0 * math.Pi, 2.0 * math.Pi)
     return polar{angle, vec.magnitude()}
 }
 
@@ -65,23 +77,15 @@ func (vec vector) unit() vector {
 
 // approximate vector equality
 func (vec vector) equal(other vector) bool {
-    epsilon := 1e-5
     dx, dy := math.Abs(vec.x - other.x), math.Abs(vec.y - other.y)
-    if dx < epsilon && dy < epsilon {
-        return true
-    }
-    return false
+    return (dx < epsilon && dy < epsilon)
 }
 
 // approximate polar equality
 func (pol polar) equal(other polar) bool {
-    epsilon := 1e-5
     da := math.Abs(pol.angle - other.angle)
     dd := math.Abs(pol.dist - other.dist)
-    if da < epsilon && dd < epsilon {
-        return true
-    }
-    return false
+    return (da < epsilon && dd < epsilon)
 }
 
 // convert polar to vector representation
@@ -113,6 +117,7 @@ func (po polarOrder) Less(i, j int) bool {
     return false
 }
 
+// convert string lines to vector slice of asteroid locations
 func readLines(lines []string) (vecs []vector) {
     for y, line := range lines {
         for x, char := range line {
@@ -132,12 +137,13 @@ func countSingle(vec vector, others []vector) (count int) {
         deltas = append(deltas, vec.sub(o).unit())
     }
 
+    // count asteroid "a" that overlap with any other asteroids
     collides := 0
     for i, a := range deltas {
         for j := i+1; j < len(deltas); j++ {
             b := deltas[j]
             if a.equal(b) {
-                // a is collides with b
+                // a is collides with at least one asteroid
                 //  no need to check if a collides with others
                 collides++
                 break
@@ -156,7 +162,7 @@ func countVisible(vecs []vector) (counts []int) {
     return
 }
 
-// calculate number and index of asteroid that can see most others
+// calculate number and index of the asteroid that can see most others
 func part1(vecs []vector) (max int, maxIdx int) {
     counts := countVisible(vecs)
     max = counts[0]
@@ -183,30 +189,32 @@ func getPolars(origin vector, others []vector) (pols []polar) {
 // shoot asteroids in clockwise fashion, skipping when one asteroid
 //  is hidden behind the one being shot
 func shootAsteroids(origin vector, pols []polar, target int) vector {
-    index := 1
-    curr, pols := pols[0], pols[1:]
+    index := 0
     for {
-        if len(pols) == 0 {
-            panic("didn't get to target int")
-        }
+        curr := polar{math.NaN(), math.NaN()} // impossible value for cmp
 
-        toDrop := []int{}
+        toDrop := map[int]bool{}
         for i, p := range pols {
             // same angle as previous => skip
             if floatEqual(p.angle, curr.angle) {
                 continue
             }
             index++
+            // fmt.Println(p.vector().add(origin))
             if index == target {
                 return p.vector().add(origin)
             }
             curr = p 
-            toDrop = append(toDrop, i)
+            toDrop[i] = true
         }
-        // FIXME: can I drop from pols during range iteration?
-        for _, i := range toDrop {
-            pols = dropPols(pols, i)
+        if len(pols) == 0 {
+            panic("didn't reach target int")
         }
+        if len(toDrop) == 0 {
+            panic("nothing to drop")
+        }
+        // remove asteroid that have been shot
+        pols = dropMany(pols, toDrop)
     }
 }
 
@@ -217,6 +225,17 @@ func Main() {
     maxVec := vecs[maxIdx]
     fmt.Println("day10.1", maxVal, maxVec)
 
+    /*
+    vecs = readLines([]string{
+        ".#....#####...#..",
+        "##...##.#####..##",
+        "##...#...#.#####.",
+        "..#.....#...###..",
+        "..#.#.....#....##",
+    })
+    maxVal, maxIdx = part1(vecs)
+    maxVec = vecs[maxIdx]
+    */
 
     pols := getPolars(maxVec, drop(vecs, maxIdx))
     fmt.Println("day10.2", shootAsteroids(maxVec, pols, 200))

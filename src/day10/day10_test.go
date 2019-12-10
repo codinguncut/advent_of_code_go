@@ -107,3 +107,15 @@ func TestVectorMag(t *testing.T) {
         t.Errorf("got: %v, want: %v", got2, want2)
     }
 }
+
+func TestDropMany(t *testing.T) {
+    xs := []polar{
+        polar{1,2},
+        polar{2,3},
+        polar{3,4},
+    }
+    y := dropMany(xs, map[int]bool{0: true, 2: true})
+    if len(y) != 1 || !y[0].equal(xs[1]) {
+        t.Errorf("got: %v, want, %v, %v", 1, len(y), y)
+    }
+}
