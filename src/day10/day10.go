@@ -190,6 +190,7 @@ func getPolars(origin vector, others []vector) (pols []polar) {
 //  is hidden behind the one being shot
 func shootAsteroids(origin vector, pols []polar, target int) vector {
     index := 0
+    // TODO: group polars by equality, then iterate from groupings
     for {
         curr := polar{math.NaN(), math.NaN()} // impossible value for cmp
 
